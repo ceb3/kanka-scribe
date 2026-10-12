@@ -47,7 +47,7 @@ def _ensure_columns(engine: Engine) -> None:
     additions = [
         ("kanka_campaign_name", "VARCHAR(255) DEFAULT ''"),
         ("kanka_campaign_slug", "VARCHAR(255) DEFAULT ''"),
-        ("kanka_public_url", "VARCHAR(500) DEFAULT 'https://kanka.boulware.cloud'"),
+        ("kanka_public_url", "VARCHAR(500) DEFAULT ''"),
         ("discord_webhook_enc", "TEXT DEFAULT ''"),
         ("discord_enabled", "BOOLEAN DEFAULT FALSE"),
         ("discord_username", "VARCHAR(80) DEFAULT 'Goblin Scribe'"),

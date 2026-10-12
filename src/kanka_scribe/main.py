@@ -33,7 +33,7 @@ from kanka_scribe.auth_util import (
     hash_password,
     verify_password,
 )
-from kanka_scribe.config import get_settings
+from kanka_scribe.config import default_kanka_public_url, get_settings
 from kanka_scribe.db import get_db, init_db
 from kanka_scribe.kanka_campaign import apply_campaign_record, find_campaign
 from kanka_scribe.kanka_client import probe_campaigns
@@ -399,6 +399,8 @@ def create_app() -> FastAPI:
                 entity_type_labels=ENTITY_TYPE_LABELS,
                 entity_type_prompts=resolve_entity_type_prompts(stored_entity),
                 entity_type_overrides=set(parse_entity_type_prompts(stored_entity)),
+                default_kanka_public_url=settings.default_kanka_public_url,
+                default_llm_base_url_placeholder=settings.default_llm_base_url_placeholder,
             ),
         )
 
@@ -417,7 +419,7 @@ def create_app() -> FastAPI:
         llm_context_length: int = Form(32768),
         llm_api_key: str = Form(""),
         handoff_dir: str = Form(""),
-        kanka_public_url: str = Form("https://kanka.boulware.cloud"),
+        kanka_public_url: str = Form(""),
         discord_enabled: str | None = Form(None),
         discord_webhook: str = Form(""),
         discord_username: str = Form("Goblin Scribe"),
@@ -462,7 +464,7 @@ def create_app() -> FastAPI:
             ws.llm_api_key_enc = encrypt_secret(llm_api_key.strip())
         ws.handoff_dir = handoff_dir.strip()
         ws.kanka_public_url = (
-            kanka_public_url.strip() or "https://kanka.boulware.cloud"
+            kanka_public_url.strip() or default_kanka_public_url()
         )
         ws.discord_enabled = bool(discord_enabled)
         ws.discord_username = discord_username.strip() or "Goblin Scribe"

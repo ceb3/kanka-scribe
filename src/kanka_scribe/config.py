@@ -23,8 +23,16 @@ class Settings(BaseSettings):
     # Bootstrap first admin on empty DB
     bootstrap_admin_email: str = "admin@example.com"
     bootstrap_admin_password: str = "changeme"
+    # Neutral defaults for UI / Discord public links (override in .env)
+    default_kanka_public_url: str = "https://kanka.example"
+    default_llm_base_url_placeholder: str = "http://localhost:11434/v1"
 
 
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+def default_kanka_public_url() -> str:
+    value = get_settings().default_kanka_public_url.strip()
+    return value or "https://kanka.example"

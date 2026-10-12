@@ -1,3 +1,6 @@
+# Run from this directory: docker compose -f compose.yaml up -d --build
+# Expects the app source as APP_BUILD_CONTEXT (default: parent of deploy/).
+
 services:
   db:
     image: postgres:16-alpine
@@ -8,7 +11,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: kanka_scribe
     volumes:
-      - /opt/kanka-scribe/data/postgres:/var/lib/postgresql/data
+      - ${POSTGRES_DATA_DIR:-./data/postgres}:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U kanka_scribe -d kanka_scribe"]
       interval: 5s
@@ -16,22 +19,23 @@ services:
       retries: 10
 
   app:
-    build: /opt/kanka-scribe
+    build: ${APP_BUILD_CONTEXT:-..}
     image: kanka-scribe:local
     container_name: kanka_scribe
     restart: always
     ports:
-      - "8095:8000"
+      - "${APP_PORT:-8095}:8000"
     env_file:
       - .env
     environment:
       DATABASE_URL: postgresql+psycopg://kanka_scribe:${POSTGRES_PASSWORD}@db:5432/kanka_scribe
       HANDOFF_DIR: /handoff
       KANKA_API_DOCS: /app/vendor/kanka-api-docs
-      # Stay under Kanka CE default API_THROTTLE_LIMIT=30/min
       KANKA_MAX_REQUESTS_PER_MINUTE: ${KANKA_MAX_REQUESTS_PER_MINUTE:-24}
+      DEFAULT_KANKA_PUBLIC_URL: ${DEFAULT_KANKA_PUBLIC_URL:-https://kanka.example}
+      DEFAULT_LLM_BASE_URL_PLACEHOLDER: ${DEFAULT_LLM_BASE_URL_PLACEHOLDER:-http://localhost:11434/v1}
     volumes:
-      - ${HANDOFF_HOST_DIR:-/mnt/backups/craig/handoff}:/handoff
+      - ${HANDOFF_HOST_DIR:-./data/handoff}:/handoff
     depends_on:
       db:
         condition: service_healthy

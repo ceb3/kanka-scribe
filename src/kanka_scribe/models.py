@@ -40,9 +40,7 @@ class Workspace(Base):
     llm_context_length: Mapped[int] = mapped_column(Integer, default=32768)
     handoff_dir: Mapped[str] = mapped_column(String(500), default="")
     # Public Kanka UI base for Discord links (may differ from API base URL)
-    kanka_public_url: Mapped[str] = mapped_column(
-        String(500), default="https://kanka.boulware.cloud"
-    )
+    kanka_public_url: Mapped[str] = mapped_column(String(500), default="")
     discord_webhook_enc: Mapped[str] = mapped_column(Text, default="")
     discord_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     discord_username: Mapped[str] = mapped_column(String(80), default="Goblin Scribe")

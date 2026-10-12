@@ -1,20 +1,26 @@
-# Deploy kanka-scribe on docker host (`192.168.1.17`)
+# Production-style Compose
+
+Use this stack when you want a named container deploy with a configurable publish
+port and host handoff mount. For day-to-day local use, prefer the root
+`docker-compose.yml` (see [docs/INSTALL.md](../docs/INSTALL.md)).
 
 ```bash
-# from Code/kanka-scribe on a machine with ssh Host docker
-ssh docker 'mkdir -p /opt/kanka-scribe /opt/stacks/kanka-scribe /mnt/backups/craig/handoff'
-rsync -av --delete \
-  --exclude '.venv' --exclude '__pycache__' --exclude '.pytest_cache' \
-  --exclude 'data' --exclude '*.egg-info' \
-  ./ docker:/opt/kanka-scribe/
-rsync -av deploy/compose.yaml deploy/.env.example docker:/opt/stacks/kanka-scribe/
-# generate .env on host if missing, then:
-ssh docker 'cd /opt/stacks/kanka-scribe && docker compose -f compose.yaml up -d --build'
+cd deploy
+cp .env.example .env
+# edit secrets, APP_PORT, HANDOFF_HOST_DIR, DEFAULT_KANKA_PUBLIC_URL, …
+mkdir -p data/postgres data/handoff
+docker compose -f compose.yaml up -d --build
 ```
 
-LAN UI: http://192.168.1.17:8095
+| Variable | Purpose |
+| --- | --- |
+| `APP_PORT` | Host port mapped to the app (default `8095`) |
+| `APP_BUILD_CONTEXT` | Path to the repo root for `docker build` (default `..`) |
+| `POSTGRES_DATA_DIR` | Postgres data directory on the host |
+| `HANDOFF_HOST_DIR` | Host directory mounted at `/handoff` |
+| `DEFAULT_KANKA_PUBLIC_URL` | Default public Kanka UI base for Discord / links |
+| `DEFAULT_LLM_BASE_URL_PLACEHOLDER` | Settings UI placeholder for the LLM base URL |
+| `KANKA_MAX_REQUESTS_PER_MINUTE` | Client-side API pacing (stay under CE’s limit) |
 
 Kanka CE throttles API calls at **30/min** by default. Scribe paces itself via
-`KANKA_MAX_REQUESTS_PER_MINUTE` (default **24**) and retries on `429` using
-`Retry-After` / exponential backoff. Raise the env var only if you also raise
-CE’s `API_THROTTLE_LIMIT`.
+`KANKA_MAX_REQUESTS_PER_MINUTE` (default **24**) and retries on `429`.

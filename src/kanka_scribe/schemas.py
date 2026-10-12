@@ -40,7 +40,7 @@ class WorkspaceCreate(BaseModel):
     llm_model: str = ""
     llm_context_length: int = 32768
     handoff_dir: str = ""
-    kanka_public_url: str = "https://kanka.boulware.cloud"
+    kanka_public_url: str = ""
     discord_webhook: str = ""
     discord_enabled: bool = False
     discord_username: str = "Goblin Scribe"

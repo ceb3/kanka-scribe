@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from kanka_scribe.api.deps import require_workspace_member
 from kanka_scribe.auth_util import get_current_user
+from kanka_scribe.config import default_kanka_public_url
 from kanka_scribe.db import get_db
 from kanka_scribe.kanka_client import probe_campaigns
 from kanka_scribe.models import User, Workspace, WorkspaceMember
@@ -40,7 +41,7 @@ def _to_out(ws: Workspace) -> WorkspaceOut:
         llm_model=ws.llm_model,
         llm_context_length=ws.llm_context_length,
         handoff_dir=ws.handoff_dir,
-        kanka_public_url=ws.kanka_public_url or "https://kanka.boulware.cloud",
+        kanka_public_url=ws.kanka_public_url or default_kanka_public_url(),
         discord_webhook_set=bool(ws.discord_webhook_enc),
         discord_enabled=bool(ws.discord_enabled),
         discord_username=ws.discord_username or "Goblin Scribe",
@@ -86,8 +87,7 @@ def create_workspace(
         llm_model=body.llm_model,
         llm_context_length=body.llm_context_length,
         handoff_dir=body.handoff_dir,
-        kanka_public_url=body.kanka_public_url
-        or "https://kanka.boulware.cloud",
+        kanka_public_url=body.kanka_public_url or default_kanka_public_url(),
         discord_webhook_enc=encrypt_secret(body.discord_webhook)
         if body.discord_webhook
         else "",

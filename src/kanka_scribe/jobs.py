@@ -8,6 +8,7 @@ import httpx
 from sqlalchemy.orm import Session
 
 from kanka_scribe.applog import write_log
+from kanka_scribe.config import default_kanka_public_url
 from kanka_scribe.discord_notify import (
     build_discord_message,
     build_name_to_url,
@@ -77,7 +78,7 @@ def run_ingest_job(db: Session, job_id: int) -> Job:
         api_prefix = workspace.kanka_api_prefix or "/1.0"
         campaign_id = int(workspace.kanka_campaign_id)
         public_base = (
-            workspace.kanka_public_url or "https://kanka.boulware.cloud"
+            workspace.kanka_public_url or default_kanka_public_url()
         ).rstrip("/")
 
         with httpx.Client(

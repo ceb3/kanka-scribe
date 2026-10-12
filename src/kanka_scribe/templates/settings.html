@@ -62,14 +62,14 @@
       {% endif %}
       {% if workspace and workspace.kanka_campaign_id %}
       <p class="muted">Public world URL:
-        <code>{{ (workspace.kanka_public_url or 'https://kanka.boulware.cloud').rstrip('/') }}/w/{% if workspace.kanka_campaign_slug %}{{ workspace.kanka_campaign_slug }}{% else %}{{ workspace.kanka_campaign_id }}{% endif %}</code>
+        <code>{{ (workspace.kanka_public_url or default_kanka_public_url).rstrip('/') }}/w/{% if workspace.kanka_campaign_slug %}{{ workspace.kanka_campaign_slug }}{% else %}{{ workspace.kanka_campaign_id }}{% endif %}</code>
         (API still uses campaign id <strong>{{ workspace.kanka_campaign_id }}</strong>)</p>
       {% endif %}
 
       <h3>LLM (OpenAI-compatible)</h3>
       <label>
         Base URL
-        <input type="url" name="llm_base_url" placeholder="http://192.168.1.232:11434/v1"
+        <input type="url" name="llm_base_url" placeholder="{{ default_llm_base_url_placeholder }}"
                value="{{ workspace.llm_base_url if workspace else '' }}" />
       </label>
       <div class="row2">
@@ -93,8 +93,8 @@
       <h3>Kanka public links</h3>
       <label>
         Public site URL <span class="optional">(for Discord links)</span>
-        <input type="url" name="kanka_public_url" placeholder="https://kanka.boulware.cloud"
-               value="{{ workspace.kanka_public_url if workspace and workspace.kanka_public_url else 'https://kanka.boulware.cloud' }}" />
+        <input type="url" name="kanka_public_url" placeholder="{{ default_kanka_public_url }}"
+               value="{{ workspace.kanka_public_url if workspace and workspace.kanka_public_url else default_kanka_public_url }}" />
       </label>
 
       <h3>Session recap prompt</h3>
