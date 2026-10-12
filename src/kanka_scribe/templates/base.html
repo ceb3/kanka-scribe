@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/app.css" />
+  {% block head %}{% endblock %}
+</head>
+<body>
+  {% if user %}
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="brand" href="/ui/app">{{ app_name }}</a>
+      <nav class="nav">
+        <a href="/ui/app" class="{% if nav == 'ingest' %}active{% endif %}">Ingest</a>
+        <a href="/ui/jobs" class="{% if nav == 'jobs' %}active{% endif %}">Past ingests</a>
+        <a href="/ui/settings" class="{% if nav == 'settings' %}active{% endif %}">Settings</a>
+        <a href="/ui/keys" class="{% if nav == 'keys' %}active{% endif %}">API keys</a>
+        <a href="/ui/logs" class="{% if nav == 'logs' %}active{% endif %}">Logs</a>
+      </nav>
+      <div class="userchip">
+        <span>{{ user.email }}</span>
+        <a href="/ui/logout">Sign out</a>
+      </div>
+    </div>
+  </header>
+  {% endif %}
+  <main class="shell {% if user %}shell-app{% endif %}">
+    {% if flash %}
+    <p class="flash {{ flash_kind }}">{{ flash }}</p>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

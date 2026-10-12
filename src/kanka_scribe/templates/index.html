@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Sign in · {{ app_name }}{% endblock %}
+{% block content %}
+  <h1>{{ app_name }}</h1>
+  <p class="lede">Ingest session transcripts into Kanka (CE or SaaS).</p>
+  <form class="login" method="post" action="/ui/login">
+    <label>Email <input type="email" name="email" required /></label>
+    <label>Password <input type="password" name="password" required /></label>
+    <button type="submit">Sign in</button>
+  </form>
+{% endblock %}

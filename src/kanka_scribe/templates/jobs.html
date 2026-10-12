@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Past ingests · {{ app_name }}{% endblock %}
+{% block content %}
+  <h1>Past ingests</h1>
+  <p class="lede">All jobs across your workspaces.</p>
+
+  {% if not jobs %}
+  <p class="muted">No ingests yet.</p>
+  {% else %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Status</th>
+        <th>Title</th>
+        <th>Source</th>
+        <th>Workspace</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for job in jobs %}
+      <tr>
+        <td><a href="/ui/jobs/{{ job.id }}">#{{ job.id }}</a></td>
+        <td><span class="status status-{{ job.status }}">{{ job.status }}</span></td>
+        <td>{{ job.title or "—" }}</td>
+        <td>{{ job.source }}</td>
+        <td>{{ workspace_names.get(job.workspace_id, job.workspace_id) }}</td>
+        <td class="muted">{{ job.created_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+{% endblock %}

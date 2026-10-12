@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Job {{ job.id }} · {{ app_name }}{% endblock %}
+{% block head %}
+  {% if job.status in ("pending", "running") %}
+  <meta http-equiv="refresh" content="3" />
+  {% endif %}
+{% endblock %}
+{% block content %}
+  <p class="back"><a href="/ui/jobs">← Past ingests</a></p>
+  <h1>Job #{{ job.id }}</h1>
+  <p class="lede">
+    <span class="status status-{{ job.status }}">{{ job.status }}</span>
+    · {{ job.source }}
+    {% if job.title %} · {{ job.title }}{% endif %}
+  </p>
+
+  {% if job.error %}
+  <section class="panel">
+    <h2>Error</h2>
+    <pre class="error">{{ job.error }}</pre>
+  </section>
+  {% endif %}
+
+  {% if result %}
+  <section class="panel">
+    <h2>Result</h2>
+    <dl class="kv">
+      {% if result.journal_id is defined %}
+      <dt>Journal id</dt><dd>{{ result.journal_id }}</dd>
+      {% endif %}
+      {% if result.note_id is defined %}
+      <dt>Transcript note id</dt><dd>{{ result.note_id }}</dd>
+      {% endif %}
+    </dl>
+    {% if result.entity_sync %}
+    <h3>Entity sync</h3>
+    <p class="muted">
+      created {{ result.entity_sync.created|length }},
+      updated {{ result.entity_sync.updated|length }},
+      errors {{ result.entity_sync.errors|length }}
+    </p>
+    {% if result.entity_sync.errors %}
+    <ul>
+      {% for err in result.entity_sync.errors %}
+      <li class="error">{{ err }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% endif %}
+    {% if result.discord is defined %}
+    <h3>Discord</h3>
+    {% if result.discord.posted %}
+    <p class="muted">Posted as Goblin Scribe.</p>
+    {% elif result.discord.error %}
+    <pre class="error">{{ result.discord.error }}</pre>
+    {% else %}
+    <p class="muted">Not posted (webhook disabled or unset).</p>
+    {% endif %}
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {% if job_logs %}
+  <section class="panel">
+    <h2>Job log</h2>
+    <ul class="loglist">
+      {% for row in job_logs %}
+      <li>
+        <span class="muted">{{ row.created_at }}</span>
+        <span class="level level-{{ row.level }}">{{ row.level }}</span>
+        {{ row.message }}
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if job.recap_markdown %}
+  <section class="panel">
+    <h2>Recap</h2>
+    <pre>{{ job.recap_markdown }}</pre>
+  </section>
+  {% endif %}
+{% endblock %}

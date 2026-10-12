@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}Settings · {{ app_name }}{% endblock %}
+{% block content %}
+  <h1>Settings</h1>
+  <p class="lede">Workspace destination (Kanka) and LLM. Secrets are write-only — leave blank to keep the current value.</p>
+
+  <section class="panel">
+    <h2>{% if workspace %}Edit workspace{% else %}Create workspace{% endif %}</h2>
+    <form class="ingest" method="post" action="/ui/settings">
+      {% if workspace %}<input type="hidden" name="workspace_id" value="{{ workspace.id }}" />{% endif %}
+      <label>
+        Workspace name
+        <input type="text" name="name" required value="{{ workspace.name if workspace else 'Home' }}" />
+      </label>
+
+      <h3>Kanka</h3>
+      <label>
+        Base URL
+        <input type="url" name="kanka_base_url" placeholder="https://kanka.example or https://api.kanka.io"
+               value="{{ workspace.kanka_base_url if workspace else '' }}" />
+      </label>
+      <div class="row2">
+        <label>
+          API prefix
+          <input type="text" name="kanka_api_prefix" value="{{ workspace.kanka_api_prefix if workspace else '/1.0' }}" />
+        </label>
+        <label>
+          Profile
+          <select name="kanka_profile">
+            <option value="ce" {% if not workspace or workspace.kanka_profile == 'ce' %}selected{% endif %}>CE (self-hosted)</option>
+            <option value="saas" {% if workspace and workspace.kanka_profile == 'saas' %}selected{% endif %}>SaaS (kanka.io)</option>
+          </select>
+        </label>
+      </div>
+      <label>
+        Personal access token
+        <input type="password" name="kanka_token" autocomplete="off"
+               placeholder="{% if workspace and workspace.kanka_token_enc %}•••• saved — paste to replace{% else %}Kanka Profile → API{% endif %}" />
+      </label>
+
+      {% if campaigns %}
+      <label>
+        Campaign / world
+        <select name="kanka_campaign_id">
+          <option value="">— select —</option>
+          {% for c in campaigns %}
+          <option value="{{ c.id }}"
+            {% if workspace and workspace.kanka_campaign_id == c.id %}selected{% endif %}>
+            {{ c.name }} (#{{ c.id }}{% if c.slug %} · /w/{{ c.slug }}{% endif %})
+          </option>
+          {% endfor %}
+        </select>
+      </label>
+      {% elif workspace and workspace.kanka_campaign_id %}
+      <p class="muted">Selected campaign id: <strong>{{ workspace.kanka_campaign_id }}</strong>
+        {% if workspace.kanka_campaign_name %} ({{ workspace.kanka_campaign_name }}){% endif %}
+        {% if workspace.kanka_campaign_slug %} · public <code>/w/{{ workspace.kanka_campaign_slug }}</code>{% endif %}.
+        Use “Save &amp; probe campaigns” to refresh the list.</p>
+      <input type="hidden" name="kanka_campaign_id" value="{{ workspace.kanka_campaign_id }}" />
+      {% else %}
+      <p class="muted">Save a PAT, then probe to pick a campaign.</p>
+      {% endif %}
+      {% if workspace and workspace.kanka_campaign_id %}
+      <p class="muted">Public world URL:
+        <code>{{ (workspace.kanka_public_url or 'https://kanka.boulware.cloud').rstrip('/') }}/w/{% if workspace.kanka_campaign_slug %}{{ workspace.kanka_campaign_slug }}{% else %}{{ workspace.kanka_campaign_id }}{% endif %}</code>
+        (API still uses campaign id <strong>{{ workspace.kanka_campaign_id }}</strong>)</p>
+      {% endif %}
+
+      <h3>LLM (OpenAI-compatible)</h3>
+      <label>
+        Base URL
+        <input type="url" name="llm_base_url" placeholder="http://192.168.1.232:11434/v1"
+               value="{{ workspace.llm_base_url if workspace else '' }}" />
+      </label>
+      <div class="row2">
+        <label>
+          Model
+          <input type="text" name="llm_model" placeholder="mistral-nemo"
+                 value="{{ workspace.llm_model if workspace else '' }}" />
+        </label>
+        <label>
+          Context length
+          <input type="number" name="llm_context_length" min="1024"
+                 value="{{ workspace.llm_context_length if workspace else 32768 }}" />
+        </label>
+      </div>
+      <label>
+        LLM API key <span class="optional">(optional)</span>
+        <input type="password" name="llm_api_key" autocomplete="off"
+               placeholder="{% if workspace and workspace.llm_api_key_enc %}•••• saved{% else %}Bearer token if required{% endif %}" />
+      </label>
+
+      <h3>Kanka public links</h3>
+      <label>
+        Public site URL <span class="optional">(for Discord links)</span>
+        <input type="url" name="kanka_public_url" placeholder="https://kanka.boulware.cloud"
+               value="{{ workspace.kanka_public_url if workspace and workspace.kanka_public_url else 'https://kanka.boulware.cloud' }}" />
+      </label>
+
+      <h3>Session recap prompt</h3>
+      <p class="muted">System instructions for Goblin Scribe when summarizing a transcript into a session journal. Leave as the built-in Session Overview template, or edit for this workspace. Saving the built-in text unchanged keeps tracking the app default.</p>
+      <label>
+        Recap system prompt
+        <textarea name="recap_system_prompt" rows="18"
+                  placeholder="Built-in Session Overview prompt">{{ recap_system_prompt }}</textarea>
+      </label>
+
+      <h3>Entity type prompts</h3>
+      <p class="muted">Per-module field instructions used when enriching entities from the transcript. Edit a type to customize Kanka Type vocabularies and metadata fields. Saving the built-in text unchanged keeps tracking the app default for that type.</p>
+      {% for key in entity_type_prompt_keys %}
+      <details class="prompt-block"{% if key in entity_type_overrides %} open{% endif %}>
+        <summary>{{ entity_type_labels[key] }}{% if key in entity_type_overrides %} <span class="muted">(custom)</span>{% endif %}</summary>
+        <label>
+          {{ entity_type_labels[key] }} field instructions
+          <textarea name="entity_prompt_{{ key }}" rows="8"
+                    placeholder="Built-in {{ key }} field instructions">{{ entity_type_prompts[key] }}</textarea>
+        </label>
+      </details>
+      {% endfor %}
+
+      <h3>Discord (Goblin Scribe)</h3>
+      <p class="muted">After a successful ingest, post the session overview with links to the journal, transcript note, and entities.</p>
+      <label class="check">
+        <input type="checkbox" name="discord_enabled" value="1"
+          {% if workspace and workspace.discord_enabled %}checked{% endif %} />
+        Post recaps to Discord
+      </label>
+      <label>
+        Webhook URL
+        <input type="password" name="discord_webhook" autocomplete="off"
+               placeholder="{% if workspace and workspace.discord_webhook_enc %}•••• saved — paste to replace{% else %}https://discord.com/api/webhooks/…{% endif %}" />
+      </label>
+      <label>
+        Webhook display name
+        <input type="text" name="discord_username"
+               value="{{ workspace.discord_username if workspace and workspace.discord_username else 'Goblin Scribe' }}" />
+      </label>
+
+      <h3>Craig handoff</h3>
+      <label>
+        Handoff directory (in container)
+        <input type="text" name="handoff_dir" placeholder="/handoff"
+               value="{{ workspace.handoff_dir if workspace else '/handoff' }}" />
+      </label>
+
+      <div class="actions">
+        <button type="submit" name="action" value="save">Save</button>
+        <button type="submit" name="action" value="probe" class="secondary">Save &amp; probe campaigns</button>
+      </div>
+    </form>
+  </section>
+
+  {% if workspaces and workspaces|length > 1 %}
+  <section class="panel">
+    <h2>Workspaces</h2>
+    <ul class="jobs">
+      {% for ws in workspaces %}
+      <li>
+        <a href="/ui/settings?workspace_id={{ ws.id }}">{{ ws.name }}</a>
+        <span class="muted">
+          {% if ws.kanka_campaign_name %}{{ ws.kanka_campaign_name }}{% elif ws.kanka_campaign_id %}#{{ ws.kanka_campaign_id }}{% else %}no campaign{% endif %}
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+    <p><a href="/ui/settings?new=1">+ New workspace</a></p>
+  </section>
+  {% elif workspace %}
+  <p><a href="/ui/settings?new=1">+ New workspace</a></p>
+  {% endif %}
+{% endblock %}

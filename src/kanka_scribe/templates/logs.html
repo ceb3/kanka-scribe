@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Logs · {{ app_name }}{% endblock %}
+{% block content %}
+  <h1>Logs</h1>
+  <p class="lede">Application and ingest events.</p>
+
+  <form class="filter" method="get" action="/ui/logs">
+    <label>
+      Workspace
+      <select name="workspace_id" onchange="this.form.submit()">
+        <option value="">All</option>
+        {% for ws in workspaces %}
+        <option value="{{ ws.id }}" {% if selected_workspace_id == ws.id %}selected{% endif %}>{{ ws.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </form>
+
+  {% if not logs %}
+  <p class="muted">No log entries yet.</p>
+  {% else %}
+  <ul class="loglist">
+    {% for row in logs %}
+    <li>
+      <span class="muted">{{ row.created_at }}</span>
+      <span class="level level-{{ row.level }}">{{ row.level }}</span>
+      {% if row.job_id %}<a href="/ui/jobs/{{ row.job_id }}">job #{{ row.job_id }}</a>{% endif %}
+      {{ row.message }}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+{% endblock %}

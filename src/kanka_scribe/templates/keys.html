@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}API keys · {{ app_name }}{% endblock %}
+{% block content %}
+  <h1>API keys</h1>
+  <p class="lede">Use as <code>Authorization: Bearer ks_...</code> for scripts and connectors. Keys are shown once at creation.</p>
+
+  {% if new_key %}
+  <section class="panel highlight">
+    <h2>Copy your new key</h2>
+    <p class="muted">This will not be shown again.</p>
+    <pre class="keybox" id="new-api-key">{{ new_key }}</pre>
+  </section>
+  {% endif %}
+
+  <section class="panel">
+    <h2>Create key</h2>
+    <form class="ingest row-form" method="post" action="/ui/keys">
+      <label>
+        Name
+        <input type="text" name="name" placeholder="session-pipeline" required />
+      </label>
+      <button type="submit">Create</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <h2>Your keys</h2>
+    {% if not keys %}
+    <p class="muted">No keys yet.</p>
+    {% else %}
+    <table class="table">
+      <thead>
+        <tr><th>Name</th><th>Prefix</th><th>Created</th><th>Last used</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for key in keys %}
+        <tr class="{% if key.revoked_at %}revoked{% endif %}">
+          <td>{{ key.name }}</td>
+          <td><code>ks_{{ key.prefix }}_...</code></td>
+          <td class="muted">{{ key.created_at }}</td>
+          <td class="muted">{{ key.last_used_at or "-" }}</td>
+          <td>
+            {% if not key.revoked_at %}
+            <form method="post" action="/ui/keys/{{ key.id }}/revoke" class="inline">
+              <button type="submit" class="danger">Revoke</button>
+            </form>
+            {% else %}
+            <span class="muted">revoked</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </section>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Ingest · {{ app_name }}{% endblock %}
+{% block content %}
+  <h1>Ingest</h1>
+  <p class="lede">Upload a transcript file or paste text into the selected workspace.</p>
+
+  {% if not workspaces %}
+  <section class="panel">
+    <h2>No workspace yet</h2>
+    <p class="muted">Configure Kanka and LLM under <a href="/ui/settings">Settings</a> first.</p>
+  </section>
+  {% else %}
+  <section class="panel">
+    <form class="ingest" method="post" action="/ui/ingest" enctype="multipart/form-data">
+      <label>
+        Workspace
+        <select name="workspace_id" required>
+          {% for ws in workspaces %}
+          <option value="{{ ws.id }}" {% if ws.id == selected_workspace_id %}selected{% endif %}>
+            {{ ws.name }}{% if ws.kanka_campaign_name %} — {{ ws.kanka_campaign_name }}{% endif %}
+          </option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        Title <span class="optional">(optional)</span>
+        <input type="text" name="title" placeholder="Session - 2026-10-11 - …" />
+      </label>
+      <label>
+        Recap markdown <span class="optional">(optional)</span>
+        <textarea name="recap_markdown" rows="4" placeholder="Leave blank to summarize with the workspace LLM"></textarea>
+      </label>
+      <label>
+        Transcript file
+        <input type="file" name="file" accept=".txt,.md,text/plain,text/markdown" />
+      </label>
+      <label>
+        Or paste transcript
+        <textarea name="transcript" rows="12" placeholder="**Speaker:**&#10;…"></textarea>
+      </label>
+      <label class="check">
+        <input type="checkbox" name="run_sync" value="1" checked />
+        Start ingest immediately
+      </label>
+      <button type="submit">Ingest</button>
+    </form>
+  </section>
+  {% endif %}
+
+  {% if jobs %}
+  <section class="panel">
+    <h2>Recent</h2>
+    <ul class="jobs">
+      {% for job in jobs %}
+      <li>
+        <a href="/ui/jobs/{{ job.id }}">#{{ job.id }}</a>
+        <span class="status status-{{ job.status }}">{{ job.status }}</span>
+        <span class="muted">{{ job.title or job.source }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+{% endblock %}

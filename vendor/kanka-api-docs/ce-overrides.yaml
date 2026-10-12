@@ -1,0 +1,36 @@
+# Known Kanka-CE drift vs vendored api-docs markdown
+profile: ce
+aliases:
+  # Docs still mention /entity_aliases; CE 3.15 serves aliases as entity_assets
+  create_path: entities/{entity_id}/entity_assets
+  list_path: entities/{entity_id}/entity_assets
+  body:
+    name: string
+    type_id: 3  # EntityAssetType.alias
+    visibility_id: int  # 1=all, 2=admin (after VisibilitiesTableSeeder)
+visibility:
+  all: 1
+  admin: 2
+  note: Empty visibilities table rejects all visibility_id values; seed VisibilitiesTableSeeder
+modules:
+  # singular code -> API collection path
+  character: characters
+  creature: creatures
+  location: locations
+  organisation: organisations
+  item: items
+  quest: quests
+  note: notes
+  event: events
+  race: races
+  family: families
+  journal: journals
+  tag: tags
+  ability: abilities
+  map: maps
+  timeline: timelines
+  calendar: calendars
+  conversation: conversations
+  dice_roll: dice_rolls
+  attribute_template: attribute_templates
+  bookmark: bookmarks
